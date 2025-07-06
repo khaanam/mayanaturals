@@ -418,16 +418,9 @@ export interface ButtonProps {
   className?: string;
 }
 
-export interface InputProps {
+export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
-  type?: string;
-  placeholder?: string;
-  value: string;
-  onChange: (value: string) => void;
   error?: string;
-  disabled?: boolean;
-  required?: boolean;
-  className?: string;
 }
 
 export interface ModalProps {
