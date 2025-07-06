@@ -1,0 +1,248 @@
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { 
+  MagnifyingGlassIcon, 
+  ShoppingCartIcon, 
+  UserIcon, 
+  HeartIcon,
+  Bars3Icon,
+  XMarkIcon,
+  GlobeAltIcon
+} from '@heroicons/react/24/outline';
+import { useAuthStore } from '../../store/useAuthStore';
+import { useCartStore } from '../../store/useCartStore';
+import Button from '../ui/Button';
+import { APP_NAME } from '../../config/constants';
+
+const Header: React.FC = () => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const { user, isAuthenticated, logout } = useAuthStore();
+  const { cart } = useCartStore();
+  const navigate = useNavigate();
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/');
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
+
+  const categories = [
+    { name: 'Skincare', href: '/products?category=skincare' },
+    { name: 'Makeup', href: '/products?category=makeup' },
+    { name: 'Haircare', href: '/products?category=haircare' },
+    { name: 'Fragrance', href: '/products?category=fragrance' },
+    { name: 'Tools', href: '/products?category=tools' }
+  ];
+
+  return (
+    <header className="bg-white shadow-sm sticky top-0 z-40">
+      {/* Top Bar */}
+      <div className="bg-pink-600 text-white py-2">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-between text-sm">
+            <div className="flex items-center space-x-4">
+              <span>Free shipping on orders above ₹999</span>
+              <span>•</span>
+              <span>Get 20% off on first order</span>
+            </div>
+            <div className="flex items-center space-x-4">
+              <button className="flex items-center space-x-1 hover:text-pink-200 transition-colors">
+                <GlobeAltIcon className="h-4 w-4" />
+                <span>English</span>
+              </button>
+              <span>•</span>
+              <span>Support: 1800-123-4567</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Header */}
+      <div className="container mx-auto px-4 py-4">
+        <div className="flex items-center justify-between">
+          {/* Logo */}
+          <Link to="/" className="flex items-center space-x-2">
+            <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-purple-600 rounded-full flex items-center justify-center">
+              <span className="text-white font-bold text-lg">H</span>
+            </div>
+            <span className="text-xl font-bold text-gray-900">{APP_NAME}</span>
+          </Link>
+
+          {/* Search Bar */}
+          <form onSubmit={handleSearch} className="flex-1 max-w-lg mx-8">
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search for products, brands, ingredients..."
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              <MagnifyingGlassIcon className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+            </div>
+          </form>
+
+          {/* Right Menu */}
+          <div className="flex items-center space-x-4">
+            {isAuthenticated ? (
+              <>
+                <Link
+                  to="/wishlist"
+                  className="p-2 text-gray-600 hover:text-pink-600 transition-colors relative"
+                >
+                  <HeartIcon className="h-6 w-6" />
+                  {/* TODO: Add wishlist count */}
+                </Link>
+                
+                <Link
+                  to="/cart"
+                  className="p-2 text-gray-600 hover:text-pink-600 transition-colors relative"
+                >
+                  <ShoppingCartIcon className="h-6 w-6" />
+                  {cart.totalItems > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-pink-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                      {cart.totalItems}
+                    </span>
+                  )}
+                </Link>
+                
+                <div className="relative group">
+                  <button className="flex items-center space-x-1 p-2 text-gray-600 hover:text-pink-600 transition-colors">
+                    <UserIcon className="h-6 w-6" />
+                    <span className="text-sm font-medium">{user?.firstName}</span>
+                  </button>
+                  
+                  {/* Dropdown Menu */}
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+                    <div className="py-2">
+                      <Link
+                        to="/profile"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        Profile
+                      </Link>
+                      <Link
+                        to="/orders"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        Orders
+                      </Link>
+                      <Link
+                        to="/wishlist"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        Wishlist
+                      </Link>
+                      <button
+                        onClick={handleLogout}
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        Logout
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="flex items-center space-x-3">
+                <Link
+                  to="/cart"
+                  className="p-2 text-gray-600 hover:text-pink-600 transition-colors relative"
+                >
+                  <ShoppingCartIcon className="h-6 w-6" />
+                  {cart.totalItems > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-pink-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                      {cart.totalItems}
+                    </span>
+                  )}
+                </Link>
+                
+                <Link to="/login">
+                  <Button variant="outline" size="sm">
+                    Login
+                  </Button>
+                </Link>
+                
+                <Link to="/register">
+                  <Button variant="primary" size="sm">
+                    Sign Up
+                  </Button>
+                </Link>
+              </div>
+            )}
+
+            {/* Mobile Menu Button */}
+            <button
+              className="md:hidden p-2 text-gray-600 hover:text-pink-600 transition-colors"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+            >
+              {isMenuOpen ? (
+                <XMarkIcon className="h-6 w-6" />
+              ) : (
+                <Bars3Icon className="h-6 w-6" />
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Navigation */}
+      <nav className="bg-gray-50 border-t border-gray-200">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-between py-3">
+            <div className="hidden md:flex items-center space-x-8">
+              {categories.map((category) => (
+                <Link
+                  key={category.name}
+                  to={category.href}
+                  className="text-gray-700 hover:text-pink-600 transition-colors font-medium"
+                >
+                  {category.name}
+                </Link>
+              ))}
+            </div>
+            
+            <div className="flex items-center space-x-4">
+              <span className="text-sm text-gray-600">New Arrivals</span>
+              <span className="text-sm text-gray-600">•</span>
+              <span className="text-sm text-gray-600">Best Sellers</span>
+              <span className="text-sm text-gray-600">•</span>
+              <span className="text-sm text-pink-600 font-medium">Sale</span>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      {/* Mobile Menu */}
+      {isMenuOpen && (
+        <div className="md:hidden bg-white border-t border-gray-200">
+          <div className="px-4 py-6 space-y-4">
+            {categories.map((category) => (
+              <Link
+                key={category.name}
+                to={category.href}
+                className="block text-gray-700 hover:text-pink-600 transition-colors font-medium"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                {category.name}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+    </header>
+  );
+};
+
+export default Header;
