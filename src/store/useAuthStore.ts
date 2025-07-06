@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { User } from '../types';
 import { authService } from '../services/auth';
+import { TEMP_CREDENTIALS } from '../config/constants';
 
 interface AuthState {
   user: User | null;
@@ -31,6 +32,90 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true, error: null });
         
         try {
+          // Check temporary credentials
+          if (email === TEMP_CREDENTIALS.admin.email && password === TEMP_CREDENTIALS.admin.password) {
+            const adminUser: User = {
+              id: 'admin-1',
+              email: TEMP_CREDENTIALS.admin.email,
+              firstName: 'Admin',
+              lastName: 'User',
+              phone: '+91 98765 43210',
+              avatar: undefined,
+              dateOfBirth: undefined,
+              gender: undefined,
+              skinType: undefined,
+              skinTone: undefined,
+              hairType: undefined,
+              beautyProfile: undefined,
+              preferences: undefined,
+              addresses: [],
+              orders: [],
+              wishlist: [],
+              loyaltyPoints: 0,
+              createdAt: new Date(),
+              updatedAt: new Date()
+            };
+            
+            set({ 
+              user: adminUser, 
+              isAuthenticated: true, 
+              isLoading: false 
+            });
+            return;
+          }
+          
+          if (email === TEMP_CREDENTIALS.user.email && password === TEMP_CREDENTIALS.user.password) {
+            const regularUser: User = {
+              id: 'user-1',
+              email: TEMP_CREDENTIALS.user.email,
+              firstName: 'Maya',
+              lastName: 'Customer',
+              phone: '+91 87654 32109',
+              avatar: undefined,
+              dateOfBirth: new Date('1990-01-01'),
+              gender: 'female',
+              skinType: 'combination',
+              skinTone: 'medium',
+              hairType: 'wavy',
+              beautyProfile: {
+                skinConcerns: ['acne', 'dark-spots'],
+                favoriteCategories: ['skincare', 'haircare'],
+                allergies: [],
+                preferredBrands: ['maya-naturals', 'himalaya'],
+                budgetRange: { min: 500, max: 2000 },
+                previousPurchases: []
+              },
+              preferences: {
+                language: 'en',
+                currency: 'INR',
+                notifications: {
+                  email: true,
+                  sms: false,
+                  push: true
+                },
+                privacy: {
+                  profileVisible: true,
+                  reviewsVisible: true,
+                  wishlistVisible: false
+                }
+              },
+              addresses: [],
+              orders: [],
+              wishlist: [],
+              loyaltyPoints: 150,
+              createdAt: new Date(),
+              updatedAt: new Date()
+            };
+            
+            set({ 
+              user: regularUser, 
+              isAuthenticated: true, 
+              isLoading: false 
+            });
+            return;
+          }
+          
+          // If not temp credentials, try actual API
           const response = await authService.login({ 
             email, 
             password, 
@@ -44,7 +129,7 @@ export const useAuthStore = create<AuthState>()(
           });
         } catch (error: any) {
           set({ 
-            error: error.message || 'Login failed', 
+            error: error.message || 'Invalid email or password', 
             isLoading: false 
           });
           throw error;
@@ -55,10 +140,44 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true, error: null });
         
         try {
-          const response = await authService.register(userData);
+          // For demo purposes, create a mock user
+          const newUser: User = {
+            id: Date.now().toString(),
+            email: userData.email,
+            firstName: userData.firstName,
+            lastName: userData.lastName,
+            phone: userData.phone,
+            avatar: undefined,
+            dateOfBirth: undefined,
+            gender: undefined,
+            skinType: undefined,
+            skinTone: undefined,
+            hairType: undefined,
+            beautyProfile: undefined,
+            preferences: {
+              language: 'en',
+              currency: 'INR',
+              notifications: {
+                email: true,
+                sms: false,
+                push: true
+              },
+              privacy: {
+                profileVisible: true,
+                reviewsVisible: true,
+                wishlistVisible: false
+              }
+            },
+            addresses: [],
+            orders: [],
+            wishlist: [],
+            loyaltyPoints: 0,
+            createdAt: new Date(),
+            updatedAt: new Date()
+          };
           
           set({ 
-            user: response.user, 
+            user: newUser, 
             isAuthenticated: true, 
             isLoading: false 
           });
@@ -98,7 +217,10 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true, error: null });
         
         try {
-          const updatedUser = await authService.updateProfile(userData);
+          const { user } = get();
+          if (!user) throw new Error('No user found');
+          
+          const updatedUser = { ...user, ...userData, updatedAt: new Date() };
           
           set({ 
             user: updatedUser, 

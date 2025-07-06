@@ -14,8 +14,8 @@ const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // Check if user is admin (you can customize this logic)
-  if (user?.email !== 'admin@hirablebeauty.com') {
+  // Check if user is admin
+  if (user?.email !== 'admin@mayanaturals.com') {
     return <Navigate to="/" replace />;
   }
 

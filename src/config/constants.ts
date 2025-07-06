@@ -3,9 +3,23 @@ export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:30
 export const API_TIMEOUT = 10000;
 
 // App Configuration
-export const APP_NAME = 'Hirable Beauty Products';
-export const APP_DESCRIPTION = 'Premium Beauty & Cosmetics for Indian Market';
+export const APP_NAME = 'Maya Naturals';
+export const APP_DESCRIPTION = 'Beauty with herbs - Natural & Organic Beauty Products';
 export const APP_VERSION = '1.0.0';
+
+// Temporary Login Credentials
+export const TEMP_CREDENTIALS = {
+  admin: {
+    email: 'admin@mayanaturals.com',
+    password: 'admin123',
+    role: 'admin'
+  },
+  user: {
+    email: 'user@mayanaturals.com',
+    password: 'user123',
+    role: 'user'
+  }
+};
 
 // Pagination
 export const DEFAULT_PAGE_SIZE = 20;
@@ -40,19 +54,6 @@ export const PRODUCT_CATEGORIES = [
     ]
   },
   {
-    id: 'makeup',
-    name: 'Makeup',
-    slug: 'makeup',
-    icon: '💄',
-    subcategories: [
-      { id: 'face', name: 'Face', slug: 'face' },
-      { id: 'eyes', name: 'Eyes', slug: 'eyes' },
-      { id: 'lips', name: 'Lips', slug: 'lips' },
-      { id: 'nails', name: 'Nails', slug: 'nails' },
-      { id: 'brushes', name: 'Brushes & Tools', slug: 'brushes-tools' }
-    ]
-  },
-  {
     id: 'haircare',
     name: 'Haircare',
     slug: 'haircare',
@@ -66,14 +67,26 @@ export const PRODUCT_CATEGORIES = [
     ]
   },
   {
-    id: 'fragrance',
-    name: 'Fragrance',
-    slug: 'fragrance',
-    icon: '🌸',
+    id: 'bodycare',
+    name: 'Body Care',
+    slug: 'bodycare',
+    icon: '🌿',
     subcategories: [
-      { id: 'perfumes', name: 'Perfumes', slug: 'perfumes' },
-      { id: 'body-mist', name: 'Body Mist', slug: 'body-mist' },
-      { id: 'deodorants', name: 'Deodorants', slug: 'deodorants' }
+      { id: 'body-wash', name: 'Body Wash', slug: 'body-wash' },
+      { id: 'body-lotion', name: 'Body Lotion', slug: 'body-lotion' },
+      { id: 'body-oil', name: 'Body Oil', slug: 'body-oil' },
+      { id: 'scrubs', name: 'Scrubs', slug: 'scrubs' }
+    ]
+  },
+  {
+    id: 'herbal',
+    name: 'Herbal Products',
+    slug: 'herbal',
+    icon: '🌱',
+    subcategories: [
+      { id: 'face-packs', name: 'Face Packs', slug: 'face-packs' },
+      { id: 'herbal-oils', name: 'Herbal Oils', slug: 'herbal-oils' },
+      { id: 'ayurvedic', name: 'Ayurvedic', slug: 'ayurvedic' }
     ]
   },
   {
@@ -119,14 +132,14 @@ export const HAIR_TYPES = [
 
 // Popular Brands
 export const POPULAR_BRANDS = [
-  { id: 'lakme', name: 'Lakmé', logo: '/brands/lakme.png' },
-  { id: 'loreal', name: 'L\'Oréal', logo: '/brands/loreal.png' },
-  { id: 'maybelline', name: 'Maybelline', logo: '/brands/maybelline.png' },
-  { id: 'nykaa', name: 'Nykaa', logo: '/brands/nykaa.png' },
-  { id: 'lotus', name: 'Lotus', logo: '/brands/lotus.png' },
+  { id: 'maya-naturals', name: 'Maya Naturals', logo: '/MayaNaturelslogo2.png' },
   { id: 'himalaya', name: 'Himalaya', logo: '/brands/himalaya.png' },
   { id: 'biotique', name: 'Biotique', logo: '/brands/biotique.png' },
-  { id: 'plum', name: 'Plum', logo: '/brands/plum.png' }
+  { id: 'khadi', name: 'Khadi', logo: '/brands/khadi.png' },
+  { id: 'forest-essentials', name: 'Forest Essentials', logo: '/brands/forest-essentials.png' },
+  { id: 'kama-ayurveda', name: 'Kama Ayurveda', logo: '/brands/kama-ayurveda.png' },
+  { id: 'organic-harvest', name: 'Organic Harvest', logo: '/brands/organic-harvest.png' },
+  { id: 'mamaearth', name: 'Mamaearth', logo: '/brands/mamaearth.png' }
 ];
 
 // Payment Methods
@@ -186,11 +199,11 @@ export const COOKIE_CONSENT = {
 
 // SEO Defaults
 export const SEO_DEFAULTS = {
-  title: 'Hirable Beauty Products - Premium Beauty & Cosmetics',
-  description: 'Discover premium beauty products for Indian skin. Shop skincare, makeup, haircare & more from top brands. Free shipping on orders above ₹999.',
-  keywords: 'beauty products, skincare, makeup, haircare, cosmetics, Indian beauty, premium beauty',
-  author: 'Hirable Beauty Products',
-  canonical: 'https://hirablebeauty.com'
+  title: 'Maya Naturals - Beauty with herbs | Natural & Organic Beauty Products',
+  description: 'Discover the power of nature with Maya Naturals. Premium herbal beauty products for skincare, haircare & wellness. 100% natural ingredients, cruelty-free.',
+  keywords: 'natural beauty products, herbal skincare, organic cosmetics, ayurvedic beauty, chemical-free products, Maya Naturals',
+  author: 'Maya Naturals',
+  canonical: 'https://mayanaturals.com'
 };
 
 // Error Messages
@@ -215,7 +228,7 @@ export const ERROR_MESSAGES = {
 
 // Success Messages
 export const SUCCESS_MESSAGES = {
-  ACCOUNT_CREATED: 'Account created successfully! Please verify your email.',
+  ACCOUNT_CREATED: 'Account created successfully! Welcome to Maya Naturals.',
   LOGIN_SUCCESS: 'Welcome back! You have been logged in successfully.',
   LOGOUT_SUCCESS: 'You have been logged out successfully.',
   PROFILE_UPDATED: 'Your profile has been updated successfully.',

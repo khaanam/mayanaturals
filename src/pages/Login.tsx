@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 import { useAuthStore } from '../store/useAuthStore';
 import { loginSchema } from '../utils/validators';
+import { TEMP_CREDENTIALS } from '../config/constants';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 
@@ -41,13 +42,27 @@ const Login: React.FC = () => {
     }
   };
 
+  const handleDemoLogin = (type: 'admin' | 'user') => {
+    const credentials = TEMP_CREDENTIALS[type];
+    login(credentials.email, credentials.password, false)
+      .then(() => {
+        toast.success(`Logged in as ${type === 'admin' ? 'Admin' : 'User'}`);
+        navigate(from, { replace: true });
+      })
+      .catch((error) => {
+        toast.error(error.message || 'Login failed');
+      });
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <Link to="/" className="flex justify-center">
-          <div className="w-12 h-12 bg-gradient-to-r from-pink-500 to-purple-600 rounded-full flex items-center justify-center">
-            <span className="text-white font-bold text-xl">H</span>
-          </div>
+          <img 
+            src="/MayaNaturelsicon.png" 
+            alt="Maya Naturals" 
+            className="w-16 h-16"
+          />
         </Link>
         <h2 className="mt-6 text-center text-3xl font-bold text-gray-900">
           Sign in to your account
@@ -56,7 +71,7 @@ const Login: React.FC = () => {
           Or{' '}
           <Link
             to="/register"
-            className="font-medium text-pink-600 hover:text-pink-500"
+            className="font-medium text-primary-600 hover:text-primary-500"
           >
             create a new account
           </Link>
@@ -64,7 +79,39 @@ const Login: React.FC = () => {
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+        <div className="bg-white py-8 px-4 shadow-lg sm:rounded-lg sm:px-10">
+          {/* Demo Credentials */}
+          <div className="mb-6 p-4 bg-secondary-50 rounded-lg border border-secondary-200">
+            <h3 className="text-sm font-medium text-gray-900 mb-3">Demo Credentials:</h3>
+            <div className="space-y-2 text-xs">
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600">Admin:</span>
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  onClick={() => handleDemoLogin('admin')}
+                  className="text-xs py-1 px-2"
+                >
+                  Login as Admin
+                </Button>
+              </div>
+              <div className="text-gray-500">admin@mayanaturals.com / admin123</div>
+              
+              <div className="flex justify-between items-center mt-3">
+                <span className="text-gray-600">User:</span>
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  onClick={() => handleDemoLogin('user')}
+                  className="text-xs py-1 px-2"
+                >
+                  Login as User
+                </Button>
+              </div>
+              <div className="text-gray-500">user@mayanaturals.com / user123</div>
+            </div>
+          </div>
+
           <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
             <div>
               <Input
@@ -107,7 +154,7 @@ const Login: React.FC = () => {
                   id="remember-me"
                   type="checkbox"
                   {...register('rememberMe')}
-                  className="h-4 w-4 text-pink-600 focus:ring-pink-500 border-gray-300 rounded"
+                  className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
                 />
                 <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">
                   Remember me
@@ -117,7 +164,7 @@ const Login: React.FC = () => {
               <div className="text-sm">
                 <Link
                   to="/forgot-password"
-                  className="font-medium text-pink-600 hover:text-pink-500"
+                  className="font-medium text-primary-600 hover:text-primary-500"
                 >
                   Forgot your password?
                 </Link>
