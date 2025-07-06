@@ -5,8 +5,8 @@ import {
   ShoppingBagIcon, 
   CurrencyRupeeIcon, 
   ChartBarIcon,
-  TrendingUpIcon,
-  TrendingDownIcon
+  ArrowTrendingUpIcon,
+  ArrowTrendingDownIcon
 } from '@heroicons/react/24/outline';
 
 const Dashboard: React.FC = () => {
@@ -119,9 +119,9 @@ const Dashboard: React.FC = () => {
                   <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
                   <div className="flex items-center mt-2">
                     {stat.trend === 'up' ? (
-                      <TrendingUpIcon className="h-4 w-4 text-green-500 mr-1" />
+                      <ArrowTrendingUpIcon className="h-4 w-4 text-green-500 mr-1" />
                     ) : (
-                      <TrendingDownIcon className="h-4 w-4 text-red-500 mr-1" />
+                      <ArrowTrendingDownIcon className="h-4 w-4 text-red-500 mr-1" />
                     )}
                     <span className={`text-sm ${stat.trend === 'up' ? 'text-green-600' : 'text-red-600'}`}>
                       {stat.change}
