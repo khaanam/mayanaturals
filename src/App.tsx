@@ -3,7 +3,6 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { useAuthStore } from './store/useAuthStore';
 import { useCartStore } from './store/useCartStore';
-// import AdminProducts from "./pages/admin/Products.tsx";
 
 // Layout Components
 import Header from './components/layout/Header.tsx';
@@ -26,9 +25,9 @@ import NotFound from './pages/NotFound.tsx';
 
 // Admin Pages
 import AdminDashboard from './pages/admin/Dashboard.tsx';
-import adminProducts from './pages/admin/Products.tsx';
-// import AdminOrders from './pages/admin/Orders';
-// import AdminUsers from './pages/admin/Users';
+import AdminProducts from './pages/admin/Products.tsx';
+import AdminOrders from './pages/admin/Orders.tsx';
+import AdminUsers from './pages/admin/Users.tsx';
 
 // Protected Route Component
 import ProtectedRoute from './components/auth/ProtectedRoute.tsx';
