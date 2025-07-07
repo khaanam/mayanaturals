@@ -9,7 +9,7 @@ import {
   ArrowRightIcon,
   CheckCircleIcon,
   BeakerIcon,
-  LeafIcon,
+  GlobeAltIcon,
   HeartIcon
 } from '@heroicons/react/24/outline';
 import Button from '../components/ui/Button';
@@ -23,7 +23,7 @@ const Home: React.FC = () => {
     { icon: SparklesIcon, text: '98% Proven Results' },
     { icon: HeartIcon, text: 'Trusted Since 2011' },
     { icon: CheckCircleIcon, text: 'UDYAM Registered Manufacturing' },
-    { icon: LeafIcon, text: 'Made in Maharashtra, India' }
+    { icon: GlobeAltIcon, text: 'Made in Maharashtra, India' }
   ];
 
   const categories = [
@@ -83,7 +83,7 @@ const Home: React.FC = () => {
 
   const whyChooseUs = [
     {
-      icon: LeafIcon,
+      icon: GlobeAltIcon,
       title: '100% Organic Ingredients',
       description: 'Every herb is carefully sourced from certified organic farms. No synthetic additives, no artificial preservatives, just pure nature.'
     },

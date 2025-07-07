@@ -9,14 +9,13 @@ import {
   TruckIcon,
   CheckCircleIcon,
   BeakerIcon,
-  LeafIcon,
   StarIcon
 } from '@heroicons/react/24/outline';
 
 const About: React.FC = () => {
   const values = [
     {
-      icon: LeafIcon,
+      icon: GlobeAltIcon,
       title: '100% Organic Ingredients',
       description: 'Every herb is carefully sourced from certified organic farms. No synthetic additives, no artificial preservatives, just pure nature.'
     },
@@ -105,7 +104,7 @@ const About: React.FC = () => {
     {
       name: 'Organic Certified',
       description: 'Certified organic ingredients from trusted farms',
-      icon: LeafIcon
+      icon: GlobeAltIcon
     },
     {
       name: 'Cruelty-Free',
