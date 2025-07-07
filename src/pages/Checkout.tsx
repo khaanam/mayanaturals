@@ -16,6 +16,7 @@ import { useCartStore } from '../store/useCartStore';
 import { useAuthStore } from '../store/useAuthStore';
 import { addressSchema } from '../utils/validators';
 import { formatCurrency } from '../utils/formatters';
+import { razorpayService } from '../services/razorpay';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
@@ -101,30 +102,82 @@ const Checkout: React.FC = () => {
   ];
 
   const onSubmit = async (data: CheckoutFormData) => {
+    if (step < 3) {
+      setStep(step + 1);
+      return;
+    }
+
     setIsProcessing(true);
     
     try {
-      // Simulate order processing
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Mock order creation
-      const orderData = {
-        items: cart.items,
-        shippingAddress: data,
-        paymentMethod: data.paymentMethod,
-        total: cart.total,
-        notes: data.notes
-      };
+      if (data.paymentMethod === 'razorpay') {
+        // Create Razorpay order
+        const { orderId, amount } = await razorpayService.createOrder(cart.total);
+        
+        // Initiate Razorpay payment
+        await razorpayService.initiatePayment({
+          amount,
+          orderId,
+          customerName: `${data.firstName} ${data.lastName}`,
+          customerEmail: user?.email || '',
+          customerPhone: data.phone,
+          onSuccess: async (response) => {
+            // Verify payment
+            const isVerified = await razorpayService.verifyPayment({
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature
+            });
 
-      console.log('Order placed:', orderData);
-      
-      // Clear cart and redirect
-      clearCart();
-      toast.success('Order placed successfully!');
-      navigate('/orders');
+            if (isVerified) {
+              // Create order in database
+              const orderData = {
+                items: cart.items,
+                shippingAddress: data,
+                paymentMethod: data.paymentMethod,
+                paymentId: response.razorpay_payment_id,
+                total: cart.total,
+                notes: data.notes
+              };
+
+              console.log('Order placed:', orderData);
+              
+              clearCart();
+              toast.success('Order placed successfully!');
+              navigate('/orders');
+            } else {
+              toast.error('Payment verification failed');
+            }
+            setIsProcessing(false);
+          },
+          onFailure: (error) => {
+            console.error('Payment failed:', error);
+            toast.error('Payment failed. Please try again.');
+            setIsProcessing(false);
+          },
+          onDismiss: () => {
+            setIsProcessing(false);
+          }
+        });
+      } else {
+        // Cash on Delivery
+        const orderData = {
+          items: cart.items,
+          shippingAddress: data,
+          paymentMethod: data.paymentMethod,
+          total: cart.total,
+          notes: data.notes
+        };
+
+        console.log('COD Order placed:', orderData);
+        
+        clearCart();
+        toast.success('Order placed successfully!');
+        navigate('/orders');
+        setIsProcessing(false);
+      }
     } catch (error: any) {
       toast.error('Failed to place order. Please try again.');
-    } finally {
       setIsProcessing(false);
     }
   };
@@ -173,7 +226,7 @@ const Checkout: React.FC = () => {
               <div key={item.step} className="flex items-center">
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
                   step >= item.step 
-                    ? 'bg-pink-600 text-white' 
+                    ? 'bg-primary-600 text-white' 
                     : 'bg-gray-200 text-gray-600'
                 }`}>
                   {step > item.step ? (
@@ -183,13 +236,13 @@ const Checkout: React.FC = () => {
                   )}
                 </div>
                 <span className={`ml-2 text-sm font-medium ${
-                  step >= item.step ? 'text-pink-600' : 'text-gray-600'
+                  step >= item.step ? 'text-primary-600' : 'text-gray-600'
                 }`}>
                   {item.title}
                 </span>
                 {item.step < 3 && (
                   <div className={`w-16 h-0.5 ml-4 ${
-                    step > item.step ? 'bg-pink-600' : 'bg-gray-200'
+                    step > item.step ? 'bg-primary-600' : 'bg-gray-200'
                   }`} />
                 )}
               </div>
@@ -220,7 +273,7 @@ const Checkout: React.FC = () => {
                             key={address.id}
                             className={`border rounded-lg p-4 cursor-pointer transition-colors ${
                               selectedAddress === address.id
-                                ? 'border-pink-500 bg-pink-50'
+                                ? 'border-primary-500 bg-primary-50'
                                 : 'border-gray-200 hover:border-gray-300'
                             }`}
                             onClick={() => handleAddressSelect(address.id)}
@@ -235,7 +288,7 @@ const Checkout: React.FC = () => {
                                     {address.type}
                                   </span>
                                   {address.isDefault && (
-                                    <span className="text-xs bg-pink-100 text-pink-600 px-2 py-1 rounded-full">
+                                    <span className="text-xs bg-primary-100 text-primary-600 px-2 py-1 rounded-full">
                                       Default
                                     </span>
                                   )}
@@ -250,7 +303,7 @@ const Checkout: React.FC = () => {
                                 name="selectedAddress"
                                 checked={selectedAddress === address.id}
                                 onChange={() => handleAddressSelect(address.id)}
-                                className="h-4 w-4 text-pink-600 focus:ring-pink-500 border-gray-300"
+                                className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300"
                               />
                             </div>
                           </div>
@@ -265,7 +318,7 @@ const Checkout: React.FC = () => {
                       <h3 className="text-sm font-medium text-gray-900">Add New Address</h3>
                       <button
                         type="button"
-                        className="text-pink-600 hover:text-pink-500 text-sm font-medium"
+                        className="text-primary-600 hover:text-primary-500 text-sm font-medium"
                       >
                         <PlusIcon className="h-4 w-4 inline mr-1" />
                         Add Address
@@ -277,8 +330,6 @@ const Checkout: React.FC = () => {
                         label="First Name"
                         type="text"
                         placeholder="Enter first name"
-                        value={watch('firstName')}
-                        onChange={() => {}}
                         {...register('firstName')}
                         error={errors.firstName?.message}
                         required
@@ -287,8 +338,6 @@ const Checkout: React.FC = () => {
                         label="Last Name"
                         type="text"
                         placeholder="Enter last name"
-                        value={watch('lastName')}
-                        onChange={() => {}}
                         {...register('lastName')}
                         error={errors.lastName?.message}
                         required
@@ -298,8 +347,6 @@ const Checkout: React.FC = () => {
                           label="Phone Number"
                           type="tel"
                           placeholder="Enter phone number"
-                          value={watch('phone')}
-                          onChange={() => {}}
                           {...register('phone')}
                           error={errors.phone?.message}
                           required
@@ -310,8 +357,6 @@ const Checkout: React.FC = () => {
                           label="Address Line 1"
                           type="text"
                           placeholder="House/Flat number, Street name"
-                          value={watch('addressLine1')}
-                          onChange={() => {}}
                           {...register('addressLine1')}
                           error={errors.addressLine1?.message}
                           required
@@ -322,8 +367,6 @@ const Checkout: React.FC = () => {
                           label="Address Line 2"
                           type="text"
                           placeholder="Area, Landmark (Optional)"
-                          value={watch('addressLine2')}
-                          onChange={() => {}}
                           {...register('addressLine2')}
                           error={errors.addressLine2?.message}
                         />
@@ -332,8 +375,6 @@ const Checkout: React.FC = () => {
                         label="City"
                         type="text"
                         placeholder="Enter city"
-                        value={watch('city')}
-                        onChange={() => {}}
                         {...register('city')}
                         error={errors.city?.message}
                         required
@@ -342,8 +383,6 @@ const Checkout: React.FC = () => {
                         label="State"
                         type="text"
                         placeholder="Enter state"
-                        value={watch('state')}
-                        onChange={() => {}}
                         {...register('state')}
                         error={errors.state?.message}
                         required
@@ -352,8 +391,6 @@ const Checkout: React.FC = () => {
                         label="Pincode"
                         type="text"
                         placeholder="Enter pincode"
-                        value={watch('pincode')}
-                        onChange={() => {}}
                         {...register('pincode')}
                         error={errors.pincode?.message}
                         required
@@ -362,11 +399,7 @@ const Checkout: React.FC = () => {
                   </div>
 
                   <div className="flex justify-end mt-6">
-                    <Button
-                      type="button"
-                      onClick={() => setStep(2)}
-                      size="lg"
-                    >
+                    <Button type="submit" size="lg">
                       Continue to Payment
                     </Button>
                   </div>
@@ -388,7 +421,7 @@ const Checkout: React.FC = () => {
                         key={method.id}
                         className={`border rounded-lg p-4 cursor-pointer transition-colors ${
                           paymentMethod === method.id
-                            ? 'border-pink-500 bg-pink-50'
+                            ? 'border-primary-500 bg-primary-50'
                             : 'border-gray-200 hover:border-gray-300'
                         }`}
                         onClick={() => setPaymentMethod(method.id)}
@@ -407,12 +440,27 @@ const Checkout: React.FC = () => {
                             value={method.id}
                             checked={paymentMethod === method.id}
                             onChange={(e) => setPaymentMethod(e.target.value)}
-                            className="h-4 w-4 text-pink-600 focus:ring-pink-500 border-gray-300"
+                            className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300"
                           />
                         </div>
                       </div>
                     ))}
                   </div>
+
+                  {/* Razorpay Payment Methods */}
+                  {paymentMethod === 'razorpay' && (
+                    <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+                      <h4 className="text-sm font-medium text-blue-900 mb-3">Available Payment Options</h4>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                        {razorpayService.getPaymentMethods().map((method) => (
+                          <div key={method.id} className="flex items-center space-x-2 text-sm text-blue-800">
+                            <span>{method.icon}</span>
+                            <span>{method.name}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
                   <div className="mt-6">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -422,7 +470,7 @@ const Checkout: React.FC = () => {
                       rows={3}
                       placeholder="Any special instructions for delivery..."
                       {...register('notes')}
-                      className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:border-pink-500 focus:outline-none focus:ring-1 focus:ring-pink-500 sm:text-sm"
+                      className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 sm:text-sm"
                     />
                   </div>
 
@@ -435,11 +483,7 @@ const Checkout: React.FC = () => {
                     >
                       Back to Shipping
                     </Button>
-                    <Button
-                      type="button"
-                      onClick={() => setStep(3)}
-                      size="lg"
-                    >
+                    <Button type="submit" size="lg">
                       Review Order
                     </Button>
                   </div>
@@ -560,8 +604,8 @@ const Checkout: React.FC = () => {
 
               {/* Free Shipping Banner */}
               {cart.subtotal < 999 && (
-                <div className="bg-pink-50 rounded-lg p-4">
-                  <p className="text-sm text-pink-600">
+                <div className="bg-primary-50 rounded-lg p-4">
+                  <p className="text-sm text-primary-600">
                     Add {formatCurrency(999 - cart.subtotal)} more to get free shipping!
                   </p>
                 </div>

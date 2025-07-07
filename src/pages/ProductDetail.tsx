@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Star, Heart, ShoppingCart, Minus, Plus, Truck, Shield, RotateCcw } from 'lucide-react';
+import { HeartIcon as HeartSolidIcon } from '@heroicons/react/24/solid';
 import { useCartStore } from '../store/useCartStore';
+import { useWishlistStore } from '../store/useWishlistStore';
 import { useAuthStore } from '../store/useAuthStore';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 import Button from '../components/ui/Button';
@@ -22,11 +24,11 @@ const mockProduct = {
     'https://images.pexels.com/photos/3685532/pexels-photo-3685532.jpeg?auto=compress&cs=tinysrgb&w=800'
   ],
   category: 'Skincare',
-  brand: 'Hirable Beauty',
+  brand: { name: 'Maya Naturals' },
   rating: 4.8,
   reviewCount: 324,
-  inStock: true,
-  stockCount: 15,
+  isInStock: true,
+  stock: 15,
   features: [
     '20% Vitamin C for brightening',
     'Hyaluronic acid for hydration',
@@ -47,7 +49,8 @@ const mockProduct = {
 const ProductDetail: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
-  const { addToCart } = useCartStore();
+  const { addItem: addToCart } = useCartStore();
+  const { toggleWishlist, isInWishlist } = useWishlistStore();
   const { user } = useAuthStore();
   
   const [product, setProduct] = useState<any>(null);
@@ -55,7 +58,6 @@ const ProductDetail: React.FC = () => {
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState('description');
-  const [isWishlisted, setIsWishlisted] = useState(false);
 
   useEffect(() => {
     // Simulate API call
@@ -79,31 +81,26 @@ const ProductDetail: React.FC = () => {
   const handleAddToCart = () => {
     if (!product) return;
     
-    addToCart({
-      id: product.id,
-      name: product.name,
-      price: product.price,
-      image: product.images[0],
-      quantity
-    });
-    
+    addToCart(product, quantity);
     toast.success(`Added ${quantity} ${product.name} to cart`);
   };
 
   const handleQuantityChange = (change: number) => {
     const newQuantity = quantity + change;
-    if (newQuantity >= 1 && newQuantity <= product?.stockCount) {
+    if (newQuantity >= 1 && newQuantity <= product?.stock) {
       setQuantity(newQuantity);
     }
   };
 
-  const toggleWishlist = () => {
+  const handleToggleWishlist = () => {
     if (!user) {
       toast.error('Please login to add to wishlist');
       return;
     }
-    setIsWishlisted(!isWishlisted);
-    toast.success(isWishlisted ? 'Removed from wishlist' : 'Added to wishlist');
+    
+    if (!product) return;
+    
+    toggleWishlist(product);
   };
 
   if (loading) {
@@ -126,6 +123,8 @@ const ProductDetail: React.FC = () => {
       </div>
     );
   }
+
+  const isWishlisted = isInWishlist(product.id);
 
   return (
     <div className="min-h-screen bg-white">
@@ -171,7 +170,7 @@ const ProductDetail: React.FC = () => {
                   key={index}
                   onClick={() => setSelectedImage(index)}
                   className={`aspect-square bg-gray-100 rounded-lg overflow-hidden border-2 transition-colors ${
-                    selectedImage === index ? 'border-rose-500' : 'border-transparent'
+                    selectedImage === index ? 'border-primary-500' : 'border-transparent'
                   }`}
                 >
                   <img
@@ -187,7 +186,7 @@ const ProductDetail: React.FC = () => {
           {/* Product Info */}
           <div className="space-y-6">
             <div>
-              <p className="text-sm text-gray-500 mb-2">{product.brand}</p>
+              <p className="text-sm text-gray-500 mb-2">{product.brand.name}</p>
               <h1 className="text-3xl font-bold text-gray-900 mb-4">{product.name}</h1>
               
               {/* Rating */}
@@ -212,16 +211,16 @@ const ProductDetail: React.FC = () => {
               {/* Price */}
               <div className="flex items-center space-x-3 mb-6">
                 <span className="text-3xl font-bold text-gray-900">
-                  ${product.price}
+                  ₹{product.price}
                 </span>
                 {product.originalPrice && (
                   <span className="text-xl text-gray-500 line-through">
-                    ${product.originalPrice}
+                    ₹{product.originalPrice}
                   </span>
                 )}
                 {product.originalPrice && (
                   <span className="bg-red-100 text-red-800 text-sm font-medium px-2 py-1 rounded">
-                    Save ${(product.originalPrice - product.price).toFixed(2)}
+                    Save ₹{(product.originalPrice - product.price).toFixed(2)}
                   </span>
                 )}
               </div>
@@ -229,9 +228,9 @@ const ProductDetail: React.FC = () => {
 
             {/* Stock Status */}
             <div className="flex items-center space-x-2">
-              <div className={`w-3 h-3 rounded-full ${product.inStock ? 'bg-green-500' : 'bg-red-500'}`} />
-              <span className={`text-sm font-medium ${product.inStock ? 'text-green-700' : 'text-red-700'}`}>
-                {product.inStock ? `In Stock (${product.stockCount} available)` : 'Out of Stock'}
+              <div className={`w-3 h-3 rounded-full ${product.isInStock ? 'bg-green-500' : 'bg-red-500'}`} />
+              <span className={`text-sm font-medium ${product.isInStock ? 'text-green-700' : 'text-red-700'}`}>
+                {product.isInStock ? `In Stock (${product.stock} available)` : 'Out of Stock'}
               </span>
             </div>
 
@@ -249,7 +248,7 @@ const ProductDetail: React.FC = () => {
                 <span className="px-4 py-2 font-medium">{quantity}</span>
                 <button
                   onClick={() => handleQuantityChange(1)}
-                  disabled={quantity >= product.stockCount}
+                  disabled={quantity >= product.stock}
                   className="p-2 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Plus className="w-4 h-4" />
@@ -261,19 +260,23 @@ const ProductDetail: React.FC = () => {
             <div className="flex space-x-4">
               <Button
                 onClick={handleAddToCart}
-                disabled={!product.inStock}
+                disabled={!product.isInStock}
                 className="flex-1 flex items-center justify-center space-x-2"
               >
                 <ShoppingCart className="w-5 h-5" />
                 <span>Add to Cart</span>
               </Button>
               <button
-                onClick={toggleWishlist}
+                onClick={handleToggleWishlist}
                 className={`p-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors ${
                   isWishlisted ? 'text-red-500 border-red-300 bg-red-50' : 'text-gray-600'
                 }`}
               >
-                <Heart className={`w-6 h-6 ${isWishlisted ? 'fill-current' : ''}`} />
+                {isWishlisted ? (
+                  <HeartSolidIcon className="w-6 h-6" />
+                ) : (
+                  <Heart className="w-6 h-6" />
+                )}
               </button>
             </div>
 
@@ -283,7 +286,7 @@ const ProductDetail: React.FC = () => {
               <ul className="space-y-2">
                 {product.features.map((feature: string, index: number) => (
                   <li key={index} className="flex items-center space-x-2">
-                    <div className="w-2 h-2 bg-rose-500 rounded-full" />
+                    <div className="w-2 h-2 bg-primary-500 rounded-full" />
                     <span className="text-gray-700">{feature}</span>
                   </li>
                 ))}
@@ -294,7 +297,7 @@ const ProductDetail: React.FC = () => {
             <div className="border-t pt-6 space-y-3">
               <div className="flex items-center space-x-3">
                 <Truck className="w-5 h-5 text-gray-600" />
-                <span className="text-sm text-gray-700">Free shipping on orders over $50</span>
+                <span className="text-sm text-gray-700">Free shipping on orders over ₹999</span>
               </div>
               <div className="flex items-center space-x-3">
                 <Shield className="w-5 h-5 text-gray-600" />
@@ -318,7 +321,7 @@ const ProductDetail: React.FC = () => {
                   onClick={() => setActiveTab(tab)}
                   className={`py-4 px-1 border-b-2 font-medium text-sm capitalize transition-colors ${
                     activeTab === tab
-                      ? 'border-rose-500 text-rose-600'
+                      ? 'border-primary-500 text-primary-600'
                       : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }`}
                 >
@@ -346,7 +349,7 @@ const ProductDetail: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {product.ingredients.map((ingredient: string, index: number) => (
                     <div key={index} className="flex items-center space-x-2">
-                      <div className="w-2 h-2 bg-rose-500 rounded-full" />
+                      <div className="w-2 h-2 bg-primary-500 rounded-full" />
                       <span className="text-gray-700">{ingredient}</span>
                     </div>
                   ))}

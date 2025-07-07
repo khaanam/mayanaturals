@@ -1,24 +1,28 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { 
   MagnifyingGlassIcon, 
   ShoppingCartIcon, 
   UserIcon, 
   HeartIcon,
   Bars3Icon,
-  XMarkIcon,
-  GlobeAltIcon
+  XMarkIcon
 } from '@heroicons/react/24/outline';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useCartStore } from '../../store/useCartStore';
+import { useWishlistStore } from '../../store/useWishlistStore';
 import Button from '../ui/Button';
+import LanguageSelector from '../ui/LanguageSelector';
 import { APP_NAME } from '../../config/constants';
 
 const Header: React.FC = () => {
+  const { t } = useTranslation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const { user, isAuthenticated, logout } = useAuthStore();
   const { cart } = useCartStore();
+  const { items: wishlistItems } = useWishlistStore();
   const navigate = useNavigate();
 
   const handleSearch = (e: React.FormEvent) => {
@@ -38,7 +42,7 @@ const Header: React.FC = () => {
   };
 
   const categories = [
-    { name: 'Skincare', href: '/products?category=skincare' },
+    { name: t('navigation.products'), href: '/products?category=skincare' },
     { name: 'Haircare', href: '/products?category=haircare' },
     { name: 'Body Care', href: '/products?category=bodycare' },
     { name: 'Herbal Products', href: '/products?category=herbal' },
@@ -57,10 +61,7 @@ const Header: React.FC = () => {
               <span>100% Natural & Organic Products</span>
             </div>
             <div className="flex items-center space-x-4">
-              <button className="flex items-center space-x-1 hover:text-secondary-200 transition-colors">
-                <GlobeAltIcon className="h-4 w-4" />
-                <span>English</span>
-              </button>
+              <LanguageSelector />
               <span>•</span>
               <span>Support: 1800-123-4567</span>
             </div>
@@ -89,7 +90,7 @@ const Header: React.FC = () => {
             <div className="relative">
               <input
                 type="text"
-                placeholder="Search for natural beauty products..."
+                placeholder={t('common.search') + ' for natural beauty products...'}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -107,7 +108,11 @@ const Header: React.FC = () => {
                   className="p-2 text-gray-600 hover:text-primary-600 transition-colors relative"
                 >
                   <HeartIcon className="h-6 w-6" />
-                  {/* TODO: Add wishlist count */}
+                  {wishlistItems.length > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-primary-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                      {wishlistItems.length}
+                    </span>
+                  )}
                 </Link>
                 
                 <Link
@@ -135,19 +140,19 @@ const Header: React.FC = () => {
                         to="/profile"
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                       >
-                        Profile
+                        {t('navigation.profile')}
                       </Link>
                       <Link
                         to="/orders"
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                       >
-                        Orders
+                        {t('navigation.orders')}
                       </Link>
                       <Link
                         to="/wishlist"
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                       >
-                        Wishlist
+                        {t('navigation.wishlist')}
                       </Link>
                       {user?.email === 'admin@mayanaturals.com' && (
                         <Link
@@ -161,7 +166,7 @@ const Header: React.FC = () => {
                         onClick={handleLogout}
                         className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                       >
-                        Logout
+                        {t('navigation.logout')}
                       </button>
                     </div>
                   </div>
@@ -183,13 +188,13 @@ const Header: React.FC = () => {
                 
                 <Link to="/login">
                   <Button variant="outline" size="sm">
-                    Login
+                    {t('navigation.login')}
                   </Button>
                 </Link>
                 
                 <Link to="/register">
                   <Button variant="primary" size="sm">
-                    Sign Up
+                    {t('navigation.register')}
                   </Button>
                 </Link>
               </div>
